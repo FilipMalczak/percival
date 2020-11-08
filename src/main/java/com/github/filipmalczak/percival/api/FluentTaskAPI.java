@@ -1,5 +1,7 @@
-package com.github.filipmalczak.percival;
+package com.github.filipmalczak.percival.api;
 
+import com.github.filipmalczak.percival.core.TaskKey;
+import com.github.filipmalczak.percival.core.TaskRun;
 import lombok.SneakyThrows;
 
 import java.util.concurrent.Callable;

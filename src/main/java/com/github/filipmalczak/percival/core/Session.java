@@ -1,5 +1,7 @@
-package com.github.filipmalczak.percival;
+package com.github.filipmalczak.percival.core;
 
+import com.github.filipmalczak.percival.impl.mongodb.PersistentTaskRun;
+import com.github.filipmalczak.percival.impl.mongodb.SessionDataRepository;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.bson.types.ObjectId;
@@ -13,7 +15,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.util.Optional;
 
-import static com.github.filipmalczak.percival.Session.PersistentData.CURRENT_DATA_ID;
+import static com.github.filipmalczak.percival.core.Session.PersistentData.CURRENT_DATA_ID;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 import static org.springframework.data.mongodb.core.query.Query.query;
 

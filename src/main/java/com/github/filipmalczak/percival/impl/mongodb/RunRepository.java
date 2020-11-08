@@ -1,4 +1,4 @@
-package com.github.filipmalczak.percival;
+package com.github.filipmalczak.percival.impl.mongodb;
 
 import org.bson.types.ObjectId;
 import org.springframework.data.repository.CrudRepository;

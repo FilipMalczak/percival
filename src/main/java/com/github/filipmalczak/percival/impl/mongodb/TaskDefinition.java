@@ -1,5 +1,6 @@
-package com.github.filipmalczak.percival;
+package com.github.filipmalczak.percival.impl.mongodb;
 
+import com.github.filipmalczak.percival.core.TaskKey;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.bson.types.ObjectId;

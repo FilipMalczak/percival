@@ -1,4 +1,4 @@
-package com.github.filipmalczak.percival;
+package com.github.filipmalczak.percival.core;
 
 import lombok.AccessLevel;
 import lombok.Data;

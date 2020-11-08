@@ -1,5 +1,6 @@
-package com.github.filipmalczak.percival;
+package com.github.filipmalczak.percival.core;
 
+import com.github.filipmalczak.percival.core.RunStatus;
 import lombok.SneakyThrows;
 import org.bson.types.ObjectId;
 

@@ -1,5 +1,10 @@
-package com.github.filipmalczak.percival;
+package com.github.filipmalczak.percival.impl.mongodb;
 
+import com.github.filipmalczak.percival.api.TaskExecutor;
+import com.github.filipmalczak.percival.core.RunStatus;
+import com.github.filipmalczak.percival.core.Session;
+import com.github.filipmalczak.percival.core.TaskKey;
+import com.github.filipmalczak.percival.core.TaskRun;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -212,7 +217,7 @@ public class Tasks implements TaskExecutor {
         List<TaskRun<?>> allRuns = new LinkedList<>();
 
         private <P> TaskDefinition<P> getDefinitionForSubTask(TaskKey<P> key){
-            Optional<TaskDefinition<P>> existing = definitionRepository.findOneByKeyNameAndKeyParametersAndParentId(key.name, key.parameters, parentId);
+            Optional<TaskDefinition<P>> existing = definitionRepository.findOneByKeyNameAndKeyParametersAndParentId(key.getName(), key.getParameters(), parentId);
             if (existing.isPresent())
                 return existing.get();
             TaskDefinition<P> out = new TaskDefinition<>(null, key, parentId, session.getId(), new Date(), null);

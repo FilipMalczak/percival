@@ -1,5 +1,6 @@
-package com.github.filipmalczak.percival;
+package com.github.filipmalczak.percival.impl.mongodb;
 
+import com.github.filipmalczak.percival.core.RunStatus;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;

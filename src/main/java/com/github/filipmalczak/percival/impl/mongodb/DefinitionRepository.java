@@ -1,5 +1,6 @@
-package com.github.filipmalczak.percival;
+package com.github.filipmalczak.percival.impl.mongodb;
 
+import com.github.filipmalczak.percival.core.PercivalException;
 import org.bson.types.ObjectId;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
@@ -8,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static com.github.filipmalczak.percival.TaskKey.getHash;
+import static com.github.filipmalczak.percival.core.TaskKey.getHash;
 import static java.util.stream.Collectors.toList;
 
 @Repository

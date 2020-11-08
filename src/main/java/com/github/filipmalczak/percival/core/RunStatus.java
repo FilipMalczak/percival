@@ -1,4 +1,4 @@
-package com.github.filipmalczak.percival;
+package com.github.filipmalczak.percival.core;
 
 public enum RunStatus {
     PENDING,
