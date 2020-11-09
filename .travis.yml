@@ -3,6 +3,3 @@ services:
   - docker
 install: ./gradlew jar
 script: ./gradlew test
-
-jdk:
-  - oraclejdk8

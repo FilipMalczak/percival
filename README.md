@@ -1,5 +1,7 @@
 # Percival
 
+[![Build Status](https://travis-ci.com/FilipMalczak/percival.svg?branch=master)](https://travis-ci.com/FilipMalczak/percival)
+
 > As you'll read in a moment, it's about "persistent task".
 > I couldn't find a smart name for that, so I kinda went
 > phonetically.
