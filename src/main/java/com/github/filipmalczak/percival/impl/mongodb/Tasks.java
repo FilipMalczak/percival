@@ -248,7 +248,7 @@ public class Tasks implements Task {
         }
 
         @Override
-        public <T, P> TaskRun<T> task(TaskKey<P> key, BiFunction<P, Task, T> body) {
+        public <T, P> TaskRun<T> createTask(TaskKey<P> key, BiFunction<P, Task, T> body) {
             TaskDefinition<P> definition = getDefinitionForSubTask(key);
             TaskRun<T> run = createRun(definition, body);
             log.info("Obtained run "+run);
@@ -263,8 +263,8 @@ public class Tasks implements Task {
     }
 
     @Override
-    public <T, P> TaskRun<T> task(TaskKey<P> key, BiFunction<P, Task, T> body) {
-        return root.task(key, body);
+    public <T, P> TaskRun<T> createTask(TaskKey<P> key, BiFunction<P, Task, T> body) {
+        return root.createTask(key, body);
     }
 
     @Override

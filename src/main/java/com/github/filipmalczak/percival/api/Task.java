@@ -11,7 +11,7 @@ public interface Task extends FluentTaskAPI, FluentTaskExecutorAPI {
     TaskExecutor getCurrentExecutor();
     void setCurrentExecutor(TaskExecutor executor);
 
-    <T, P> TaskRun<T> task(TaskKey<P> key, BiFunction<P, Task, T> body);
+    <T, P> TaskRun<T> createTask(TaskKey<P> key, BiFunction<P, Task, T> body);
 
     Stream<TaskRun<?>> getAllRuns();
 

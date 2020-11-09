@@ -44,7 +44,7 @@ public interface FluentTaskAPI {
                 return new CalculatingClosure<P>() {
                     @Override
                     public <T> TaskRun<T> subtask(BiFunction<P, Task, T> body) {
-                        return taskImpl(key, body);
+                        return createTask(key, body);
                     }
 
                     @Override
@@ -74,7 +74,7 @@ public interface FluentTaskAPI {
                 return new RunningClosure<P>() {
                     @Override
                     public TaskRun<Void> subtask(BiConsumer<P, Task> body) {
-                        return taskImpl(key, (p, e) -> {body.accept(p, e); return null;});
+                        return createTask(key, (p, e) -> {body.accept(p, e); return null;});
                     }
 
                     @Override
@@ -108,9 +108,5 @@ public interface FluentTaskAPI {
         return task(new TaskKey(name, parameters));
     }
 
-    default <T, P> TaskRun<T> taskImpl(TaskKey<P> key, BiFunction<P, Task, T> body){
-        return task(key, body);
-    }
-
-    <T, P> TaskRun<T> task(TaskKey<P> key, BiFunction<P, Task, T> body);
+    <T, P> TaskRun<T> createTask(TaskKey<P> key, BiFunction<P, Task, T> body);
 }
