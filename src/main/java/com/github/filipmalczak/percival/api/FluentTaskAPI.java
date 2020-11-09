@@ -12,21 +12,21 @@ import java.util.function.Function;
 
 public interface FluentTaskAPI {
     interface CalculatingClosure<P> {
-        <T> TaskRun<T> subtask(BiFunction<P, TaskExecutor, T> body);
+        <T> TaskRun<T> subtask(BiFunction<P, Task, T> body);
 
         <T> TaskRun<T> parametrized(Function<P, T> body);
 
-        <T> TaskRun<T> recursive(Function<TaskExecutor, T> body);
+        <T> TaskRun<T> recursive(Function<Task, T> body);
 
         <T> TaskRun<T> simple(Callable<T> body);
     }
 
     interface RunningClosure<P> {
-        TaskRun<Void> subtask(BiConsumer<P, TaskExecutor> body);
+        TaskRun<Void> subtask(BiConsumer<P, Task> body);
 
         TaskRun<Void> parametrized(Consumer<P> body);
 
-        TaskRun<Void> recursive(Consumer<TaskExecutor> body);
+        TaskRun<Void> recursive(Consumer<Task> body);
 
         TaskRun<Void> simple(Runnable body);
     }
@@ -43,7 +43,7 @@ public interface FluentTaskAPI {
             public CalculatingClosure<P> calculating() {
                 return new CalculatingClosure<P>() {
                     @Override
-                    public <T> TaskRun<T> subtask(BiFunction<P, TaskExecutor, T> body) {
+                    public <T> TaskRun<T> subtask(BiFunction<P, Task, T> body) {
                         return taskImpl(key, body);
                     }
 
@@ -53,7 +53,7 @@ public interface FluentTaskAPI {
                     }
 
                     @Override
-                    public <T> TaskRun<T> recursive(Function<TaskExecutor, T> body) {
+                    public <T> TaskRun<T> recursive(Function<Task, T> body) {
                         return subtask((p, e) -> body.apply(e));
                     }
 
@@ -73,7 +73,7 @@ public interface FluentTaskAPI {
             public RunningClosure<P> running() {
                 return new RunningClosure<P>() {
                     @Override
-                    public TaskRun<Void> subtask(BiConsumer<P, TaskExecutor> body) {
+                    public TaskRun<Void> subtask(BiConsumer<P, Task> body) {
                         return taskImpl(key, (p, e) -> {body.accept(p, e); return null;});
                     }
 
@@ -83,7 +83,7 @@ public interface FluentTaskAPI {
                     }
 
                     @Override
-                    public TaskRun<Void> recursive(Consumer<TaskExecutor> body) {
+                    public TaskRun<Void> recursive(Consumer<Task> body) {
                         return subtask((p, e) -> body.accept(e));
                     }
 
@@ -108,9 +108,9 @@ public interface FluentTaskAPI {
         return task(new TaskKey(name, parameters));
     }
 
-    default <T, P> TaskRun<T> taskImpl(TaskKey<P> key, BiFunction<P, TaskExecutor, T> body){
+    default <T, P> TaskRun<T> taskImpl(TaskKey<P> key, BiFunction<P, Task, T> body){
         return task(key, body);
     }
 
-    <T, P> TaskRun<T> task(TaskKey<P> key, BiFunction<P, TaskExecutor, T> body);
+    <T, P> TaskRun<T> task(TaskKey<P> key, BiFunction<P, Task, T> body);
 }

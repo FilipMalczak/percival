@@ -2,6 +2,7 @@ plugins {
     id 'org.springframework.boot' version '2.3.3.RELEASE'
     id 'io.spring.dependency-management' version '1.0.10.RELEASE'
     id 'java'
+    id 'com.palantir.docker-run' version '0.25.0'
 }
 
 group = 'com.github.filipmalczak'
@@ -19,10 +20,39 @@ repositories {
 }
 
 dependencies {
-//    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
-    implementation 'org.springframework.data:spring-data-mongodb'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
+
+    implementation 'org.springframework.data:spring-data-mongodb'
+
+    testImplementation(platform('org.junit:junit-bom:5.7.0'))
+    testImplementation('org.junit.jupiter:junit-jupiter')
+
+    testImplementation'org.springframework.boot:spring-boot-starter-data-mongodb'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
-tasks.withType(Test) {enabled = false}
+//if something fails, try "docker logout" in local shell
+
+dockerRun {
+    name 'mongodb-percival-test'
+    image 'mongo:4.4.1'
+    ports '27017:27017'
+    //env 'MONGO_INITDB_ROOT_USERNAME': 'root', 'MONGO_INITDB_ROOT_PASSWORD': 'example'
+    daemonize true
+    clean true
+}
+
+test {
+    dependsOn 'dockerRun'
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+    finalizedBy dockerStop
+}
+
+//todo startPostMortem, stopPostMortem that starts up the db + express

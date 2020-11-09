@@ -1,14 +1,8 @@
 package com.github.filipmalczak.percival.impl.mongodb;
 
-import com.github.filipmalczak.percival.api.TaskExecutor;
-import com.github.filipmalczak.percival.core.RunStatus;
-import com.github.filipmalczak.percival.core.Session;
-import com.github.filipmalczak.percival.core.TaskKey;
-import com.github.filipmalczak.percival.core.TaskRun;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.SneakyThrows;
+import com.github.filipmalczak.percival.api.Task;
+import com.github.filipmalczak.percival.core.*;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
@@ -29,7 +23,7 @@ import java.util.stream.Stream;
 @Slf4j
 @Component
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Tasks implements TaskExecutor {
+public class Tasks implements Task {
     @Autowired
     DefinitionRepository definitionRepository;
 
@@ -39,10 +33,11 @@ public class Tasks implements TaskExecutor {
     @Autowired
     Session session;
 
-//    ForkJoinPool pool = new ForkJoinPool();
-    ExecutorService pool = Executors.newCachedThreadPool();
+    @Getter
+    @Setter
+    TaskExecutor currentExecutor = TaskExecutors.currentThread();
 
-    TaskTreeBuilder root = new TaskTreeBuilder();
+    TaskTreeBuilder root = new TaskTreeBuilder(getCurrentExecutor());
 
     @AllArgsConstructor
     @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -171,26 +166,28 @@ public class Tasks implements TaskExecutor {
         ObjectId taskId;
         RunStatus status;
         P parameters;
-        BiFunction<P, TaskExecutor, T> body;
+        BiFunction<P, Task, T> body;
+        TaskExecutor executor;
         Future<T> backend;
 
-        public RuntimeRun(ObjectId runId, ObjectId taskId,  P parameters, BiFunction<P, TaskExecutor, T> body){
+        public RuntimeRun(ObjectId runId, ObjectId taskId,  P parameters, BiFunction<P, Task, T> body, TaskExecutor executor){
             this.runId = runId;
             this.taskId = taskId;
             this.status = RunStatus.PENDING;
             this.parameters = parameters;
             this.body = body;
+            this.executor = executor;
         }
 
         void submit(){
 //            this.backend = pool.submit(new RecursiveTask<T>() {
-            this.backend = pool.submit(() -> {
+            this.backend = executor.execute(() -> {
                     markStarted(RuntimeRun.this);
-                    TaskTreeBuilder executor = new TaskTreeBuilder();
-                    executor.setParentId(taskId);
+                    TaskTreeBuilder task = new TaskTreeBuilder(this.executor);
+                    task.setParentId(taskId);
                     try {
-                        T result = body.apply(parameters, executor);
-                        executor.joinAll();
+                        T result = body.apply(parameters, task);
+                        task.joinAll();
                         markFinished(RuntimeRun.this, result);
                         return result;
                     } catch (ToBeContinued e){
@@ -212,9 +209,14 @@ public class Tasks implements TaskExecutor {
 
     @Data
     @FieldDefaults(level = AccessLevel.PRIVATE)
-    private class TaskTreeBuilder implements TaskExecutor {
+    private class TaskTreeBuilder implements Task {
         ObjectId parentId = null;
         List<TaskRun<?>> allRuns = new LinkedList<>();
+        TaskExecutor currentExecutor;
+
+        public TaskTreeBuilder(TaskExecutor currentExecutor) {
+            this.currentExecutor = currentExecutor;
+        }
 
         private <P> TaskDefinition<P> getDefinitionForSubTask(TaskKey<P> key){
             Optional<TaskDefinition<P>> existing = definitionRepository.findOneByKeyNameAndKeyParametersAndParentId(key.getName(), key.getParameters(), parentId);
@@ -226,7 +228,7 @@ public class Tasks implements TaskExecutor {
         }
 
 
-        private <T, P> TaskRun<T> createRun(TaskDefinition<P> definition, BiFunction<P, TaskExecutor, T> body) {
+        private <T, P> TaskRun<T> createRun(TaskDefinition<P> definition, BiFunction<P, Task, T> body) {
             if (definition.getSuccesfulRun() != null){
                 log.info("Task "+definition.getKey()+" (#"+definition.getId()+") already executed in run #"+definition.getSuccesfulRun().getRunId());
                 return new RetrievedTaskRun<T>((PersistentTaskRun<T>) definition.getSuccesfulRun());
@@ -236,7 +238,8 @@ public class Tasks implements TaskExecutor {
                     ObjectId.get(),
                     definition.getId(),
                     definition.getKey().getParameters(),
-                    body
+                    body,
+                    currentExecutor
                 );
                 create(run);
                 run.submit();
@@ -245,7 +248,7 @@ public class Tasks implements TaskExecutor {
         }
 
         @Override
-        public <T, P> TaskRun<T> task(TaskKey<P> key, BiFunction<P, TaskExecutor, T> body) {
+        public <T, P> TaskRun<T> task(TaskKey<P> key, BiFunction<P, Task, T> body) {
             TaskDefinition<P> definition = getDefinitionForSubTask(key);
             TaskRun<T> run = createRun(definition, body);
             log.info("Obtained run "+run);
@@ -260,7 +263,7 @@ public class Tasks implements TaskExecutor {
     }
 
     @Override
-    public <T, P> TaskRun<T> task(TaskKey<P> key, BiFunction<P, TaskExecutor, T> body) {
+    public <T, P> TaskRun<T> task(TaskKey<P> key, BiFunction<P, Task, T> body) {
         return root.task(key, body);
     }
 
@@ -276,6 +279,13 @@ public class Tasks implements TaskExecutor {
     }
 
     void shutdown(){
-        pool.shutdown();
+        currentExecutor.shutdown();
+        //todo some executors might leak
+        getAllRuns().forEach(r -> {
+            if (r instanceof RuntimeRun) {
+                RuntimeRun runtimeRun = (RuntimeRun) r;
+                runtimeRun.getExecutor().shutdown();
+            }
+        });
     }
 }
