@@ -1,7 +1,8 @@
 plugins {
     id 'org.springframework.boot' version '2.3.3.RELEASE'
     id 'io.spring.dependency-management' version '1.0.10.RELEASE'
-    id 'java'
+    id 'java-library'
+    id 'maven-publish'
     id 'com.palantir.docker-run' version '0.25.0'
 }
 
@@ -54,6 +55,16 @@ test {
         events "passed", "skipped", "failed"
     }
     finalizedBy dockerStop
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId project.group
+            artifactId project.name
+            version project.version
+        }
+    }
 }
 
 //todo startPostMortem, stopPostMortem that starts up the db + express
