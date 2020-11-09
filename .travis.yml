@@ -1,3 +1,5 @@
 language: java
 services:
   - docker
+install: ./gradlew jar
+script: ./gradlew test
