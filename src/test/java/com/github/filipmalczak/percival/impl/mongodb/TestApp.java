@@ -1,23 +1,21 @@
 package com.github.filipmalczak.percival.impl.mongodb;
 
-import com.github.filipmalczak.percival.Percival;
+import com.github.filipmalczak.percival.PercivalConfig;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClients;
-import com.mongodb.client.internal.MongoClientImpl;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 import java.util.Random;
 
 @SpringBootApplication
-@Percival
+@Import(PercivalConfig.class)
 @Slf4j
 public class TestApp {
     @Bean
