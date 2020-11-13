@@ -33,7 +33,11 @@ public interface FluentTaskExecutorAPI {
         }
 
         public void dedicatedSingleThread(){
-            target.setCurrentExecutor(TaskExecutors.dedicatedSingleThread(this.hashCode()));
+            dedicatedSingleThread(this);
+        }
+
+        public void dedicatedSingleThread(Object hashable){
+            target.setCurrentExecutor(TaskExecutors.dedicatedSingleThread(hashable.hashCode()));
         }
 
         public void inQueue(){
