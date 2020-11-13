@@ -11,7 +11,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@EnableMongoRepositories//(basePackageClasses = Percival.class)
+@EnableMongoRepositories(basePackageClasses = Percival.class)
 @Import(Percival.Config.class)
 public @interface Percival {
     @ComponentScan(basePackageClasses = Percival.class)
