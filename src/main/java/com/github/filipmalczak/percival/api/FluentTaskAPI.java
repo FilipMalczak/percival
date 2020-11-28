@@ -105,7 +105,7 @@ public interface FluentTaskAPI {
     }
 
     default <P> BodyClosure<P> task(String name, P parameters){
-        return task(new TaskKey(name, parameters));
+        return task(TaskKey.of(name, parameters));
     }
 
     <T, P> TaskRun<T> createTask(TaskKey<P> key, BiFunction<P, Task, T> body);

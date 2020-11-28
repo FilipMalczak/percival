@@ -1,36 +1,52 @@
 package com.github.filipmalczak.percival.core;
 
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.Setter;
+import lombok.*;
 
+import java.util.Collection;
+import java.util.Map;
+
+import static org.springframework.beans.BeanUtils.isSimpleValueType;
+
+/**
+ * todo consider support for maps
+ * @param <Parameters> non-simple, non-void, non-collection and non-array parameters type; cannot be internal class (must pubnlicly reside in package and not another class); must be embeddable in MongoDB document
+ */
 @Data
 @Setter(AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class TaskKey<Parameters> {
     String name;
-    Parameters parameters = null;
+    Parameters parameters;
 
-    public static <T> int getHash(T t){
-        return t == null ? 0 : t.hashCode();
+    public static <T> boolean canActAsParameters(@NonNull Class<T> clazz){
+        if (isSimpleValueType(clazz))
+            return false;
+        if (clazz.isArray())
+            return false;
+        if (Collection.class.isAssignableFrom(clazz))
+            return false;
+        if (Map.class.isAssignableFrom(clazz))
+            return false;
+        if (clazz.equals(void.class))
+            return false;
+        if (clazz.equals(Void.class))
+            return false;
+        if (clazz.getDeclaringClass() != null)
+            return false;
+        return true;
     }
 
-    public TaskKey(String name, Parameters parameters) {
-        this.name = name != null ? name.trim() : null;
-
-        // I don't know why, but Tasks implementation is going nuts when parameter is String.
-        // Considering that if you need just a string, you can use name with null parameters, let's block the possibility
-        // to do that.
-        if (parameters instanceof String)
+    public static <P> TaskKey<P> of(String name, P parameters){
+        if (parameters != null && ! canActAsParameters(parameters.getClass()))
             throw new RuntimeException(); //todo dedicated exception
-
-        this.parameters = parameters;
+        return new TaskKey<>(name, parameters);
     }
 
     public static TaskKey<Void> of(String name){
-        return new TaskKey<>(name, null);
+        return of(name, null);
     }
 
     public static <P> TaskKey<P> of(P parameters){
-        return new TaskKey<>(null, parameters);
+        return of(null, parameters);
     }
 }
