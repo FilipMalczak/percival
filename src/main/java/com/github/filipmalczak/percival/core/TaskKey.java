@@ -9,7 +9,6 @@ import lombok.Setter;
 public class TaskKey<Parameters> {
     String name;
     Parameters parameters = null;
-    int parametersHash = 0;
 
     public static <T> int getHash(T t){
         return t == null ? 0 : t.hashCode();
@@ -25,7 +24,6 @@ public class TaskKey<Parameters> {
             throw new RuntimeException(); //todo dedicated exception
 
         this.parameters = parameters;
-        this.parametersHash = getHash(parameters);
     }
 
     public static TaskKey<Void> of(String name){

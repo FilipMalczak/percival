@@ -40,8 +40,12 @@ public interface FluentTaskExecutorAPI {
             target.setCurrentExecutor(TaskExecutors.dedicatedSingleThread(hashable.hashCode()));
         }
 
+        public void inQueue(Object hashable) {
+            dedicatedSingleThread(hashable);
+        }
+
         public void inQueue(){
-            commonSingleThread();
+            inQueue(this);
         }
 
         public void fixedPool(int size){

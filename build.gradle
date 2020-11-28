@@ -7,7 +7,7 @@ plugins {
 }
 
 group = 'com.github.filipmalczak'
-//version = '0.0.1-SNAPSHOT'
+version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '1.8'
 
 bootJar { enabled = false }
@@ -32,6 +32,7 @@ dependencies {
 
     implementation 'javax.annotation:javax.annotation-api:1.3.2'
     implementation 'org.springframework.data:spring-data-mongodb'
+    implementation 'org.mongodb:mongodb-driver-sync:4.0.5'
 
     testImplementation(platform('org.junit:junit-bom:5.7.0'))
     testImplementation('org.junit.jupiter:junit-jupiter')

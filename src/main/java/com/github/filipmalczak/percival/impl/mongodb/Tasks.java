@@ -7,6 +7,9 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
@@ -15,10 +18,14 @@ import java.io.StringWriter;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toList;
 
 @Slf4j
 @Component
@@ -32,6 +39,9 @@ public class Tasks implements Task {
 
     @Autowired
     Session session;
+
+    @Autowired
+    MongoTemplate mongoTemplate;
 
     @Getter
     @Setter
@@ -218,10 +228,23 @@ public class Tasks implements Task {
             this.currentExecutor = currentExecutor;
         }
 
+        private Stream<TaskDefinition> findByKeyAndParentId(TaskKey key, ObjectId parentId) {
+            Criteria criteria = Criteria.where("parentId").is(parentId);
+            if (key.getName() != null)
+                criteria = criteria.and("key.name").is(key.getName());
+            if (key.getParameters() != null)
+                //todo this probably removes support for inner parameter classes
+                criteria = criteria.and("key.parameters._class").is(key.getParameters().getClass().getCanonicalName());
+            return mongoTemplate.find(Query.query(criteria), TaskDefinition.class).stream()
+                .filter(it -> it.getKey().equals(key));
+        }
+
         private <P> TaskDefinition<P> getDefinitionForSubTask(TaskKey<P> key){
-            Optional<TaskDefinition<P>> existing = definitionRepository.findOneByKeyNameAndKeyParametersAndParentId(key.getName(), key.getParameters(), parentId);
-            if (existing.isPresent())
-                return existing.get();
+            List<TaskDefinition> existing = findByKeyAndParentId(key, parentId).collect(toList());
+            if (existing.size() > 1)
+                throw new RuntimeException(); //todo
+            if (existing.size() == 1)
+                return (TaskDefinition<P>) existing.get(0);
             TaskDefinition<P> out = new TaskDefinition<>(null, key, parentId, session.getId(), new Date(), null);
             out = definitionRepository.save(out);
             return out;
